@@ -1,11 +1,12 @@
 import os
+import dj_database_url
 from decouple import config
 from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,10 +53,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
 }
 
 AUTH_PASSWORD_VALIDATORS = []
@@ -78,7 +77,10 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',')
 
 # Custom User model
 AUTH_USER_MODEL = 'core.User'
